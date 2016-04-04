@@ -289,7 +289,8 @@ public class SampleActivity extends BaseActivity {
         UCrop.fileManager.keepFile=true     if you want to keep the original image file
         UCrop.fileManager.imageFile         file instance
 
-        //  Downloading test info. Time varies depending on server(obviously)
+        //  Downloading test info. Time varies depending on server(obviously).
+        //  Info for sampled versions, original - not checked, original+sampled - too.
         //startCropActivity("https://i.ytimg.com/vi/hu6hIhW00Fk/maxresdefault.jpg");             //~1.9sec  //cool 2k blackhole
         //startCropActivity("http://www.nasa.gov/sites/default/files/cygx1_ill.jpg");            //~3sec    //cool 2k blackhole
         //startCropActivity("http://wall.rimbuz.com/wp-content/uploads/4K-Wallpapers-HD.jpg");   //~3sec    //4k

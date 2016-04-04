@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 
 import com.yalantis.ucrop.R;
+import com.yalantis.ucrop.UCrop;
 import com.yalantis.ucrop.util.CubicEasing;
 import com.yalantis.ucrop.util.RectUtils;
 
@@ -80,21 +81,34 @@ public class CropImageView extends TransformImageView {
      */
     @Nullable
     public Bitmap cropImage() {
+        //  viewBitmap is downscaled version for UI
+        Bitmap originalBitmap;
         Bitmap viewBitmap = getViewBitmap();
         if (viewBitmap == null || viewBitmap.isRecycled()) {
             return null;
-        }123
+        }
+        originalBitmap = UCrop.fileManager.bitmap;
+        float originalBitmapWidth = originalBitmap.getWidth();
+        float originalBitmapHeight = originalBitmap.getHeight();
+        float widthView = viewBitmap.getWidth();
+        float heightView = viewBitmap.getHeight();
 
         cancelAllAnimations();
         setImageToWrapCropBounds(false);
 
         RectF currentImageRect = RectUtils.trapToRect(mCurrentImageCorners);
-        if (currentImageRect.isEmpty()) {
+            if (currentImageRect.isEmpty()) {
             return null;
         }
 
         float currentScale = getCurrentScale();
         float currentAngle = getCurrentAngle();
+
+        if ( (originalBitmapHeight/heightView) >= (originalBitmapWidth/widthView) )
+            currentScale /= originalBitmapHeight/heightView;
+        else
+            currentScale /= originalBitmapWidth/widthView;
+
 
         if (mMaxResultImageSizeX > 0 && mMaxResultImageSizeY > 0) {
             float cropWidth = mCropRect.width() / currentScale;
@@ -106,13 +120,13 @@ public class CropImageView extends TransformImageView {
                 float scaleY = mMaxResultImageSizeY / cropHeight;
                 float resizeScale = Math.min(scaleX, scaleY);
 
-                Bitmap resizedBitmap = Bitmap.createScaledBitmap(viewBitmap,
-                        (int) (viewBitmap.getWidth() * resizeScale),
-                        (int) (viewBitmap.getHeight() * resizeScale), false);
-                if (viewBitmap != resizedBitmap) {
-                    viewBitmap.recycle();
+                Bitmap resizedBitmap = Bitmap.createScaledBitmap(originalBitmap,
+                        mMaxResultImageSizeX,
+                        mMaxResultImageSizeY, false);
+                if (originalBitmap != resizedBitmap) {
+                    originalBitmap.recycle();
                 }
-                viewBitmap = resizedBitmap;
+                originalBitmap = resizedBitmap;
 
                 currentScale /= resizeScale;
             }
@@ -120,14 +134,13 @@ public class CropImageView extends TransformImageView {
 
         if (currentAngle != 0) {
             mTempMatrix.reset();
-            mTempMatrix.setRotate(currentAngle, viewBitmap.getWidth() / 2, viewBitmap.getHeight() / 2);
-
-            Bitmap rotatedBitmap = Bitmap.createBitmap(viewBitmap, 0, 0, viewBitmap.getWidth(), viewBitmap.getHeight(),
+            mTempMatrix.setRotate(currentAngle, originalBitmapWidth / 2, originalBitmapHeight / 2);
+            Bitmap rotatedBitmap = Bitmap.createBitmap(originalBitmap, 0, 0, (int)originalBitmapWidth, (int)originalBitmapHeight,
                     mTempMatrix, true);
-            if (viewBitmap != rotatedBitmap) {
-                viewBitmap.recycle();
+            if (originalBitmap != rotatedBitmap) {
+                originalBitmap.recycle();
             }
-            viewBitmap = rotatedBitmap;
+            originalBitmap = rotatedBitmap;
         }
 
         int top = (int) ((mCropRect.top - currentImageRect.top) / currentScale);
@@ -135,7 +148,7 @@ public class CropImageView extends TransformImageView {
         int width = (int) (mCropRect.width() / currentScale);
         int height = (int) (mCropRect.height() / currentScale);
 
-        return Bitmap.createBitmap(viewBitmap, left, top, width, height);
+        return Bitmap.createBitmap(originalBitmap, left, top, width, height);
     }
 
     /**
