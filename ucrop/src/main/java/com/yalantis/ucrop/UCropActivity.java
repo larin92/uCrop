@@ -537,6 +537,7 @@ public class UCropActivity extends AppCompatActivity {
                 outputStream = getContentResolver().openOutputStream(mOutputUri);
                 croppedBitmap.compress(mCompressFormat, mCompressQuality, outputStream);
                 croppedBitmap.recycle();
+                UCrop.fileManager.bitmap.recycle();
 
                 setResultUri(mOutputUri, mGestureCropImageView.getTargetAspectRatio());
                 finish();
